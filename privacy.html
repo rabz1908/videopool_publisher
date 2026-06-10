@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — VideoPool Publisher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg:#0a0a0a; --surface:#111111; --border:#1e1e1e; --accent:#e8ff47; --text:#f0f0f0; --muted:#888; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:15px;line-height:1.8}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:20px 48px;border-bottom:1px solid var(--border);background:rgba(10,10,10,0.92);backdrop-filter:blur(12px)}
+    .logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;text-decoration:none;color:var(--text)}
+    .logo span{color:var(--accent)}
+    nav a.back{color:var(--muted);text-decoration:none;font-size:13px;letter-spacing:0.05em;transition:color 0.2s}
+    nav a.back:hover{color:var(--text)}
+    .container{max-width:720px;margin:0 auto;padding:140px 48px 100px}
+    .page-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+    h1{font-family:'Syne',sans-serif;font-weight:800;font-size:42px;letter-spacing:-1.5px;line-height:1.1;margin-bottom:12px}
+    .updated{font-size:12px;color:var(--muted);margin-bottom:60px;letter-spacing:0.05em}
+    h2{font-family:'Syne',sans-serif;font-weight:700;font-size:20px;letter-spacing:-0.3px;margin:48px 0 16px;color:var(--text)}
+    h3{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;margin:24px 0 10px;color:var(--accent)}
+    p{color:var(--muted);margin-bottom:16px}
+    ul{color:var(--muted);padding-left:24px;margin-bottom:16px}
+    li{margin-bottom:8px}
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+    .divider{border:none;border-top:1px solid var(--border);margin:48px 0}
+    .notice{background:#131313;border:1px solid var(--border);border-left:3px solid var(--accent);padding:20px 24px;margin:24px 0;font-size:13px;color:var(--muted)}
+    footer{border-top:1px solid var(--border);padding:32px 48px;display:flex;justify-content:space-between;align-items:center}
+    footer .copy{font-size:12px;color:var(--muted)}
+    .footer-links{display:flex;gap:24px}
+    .footer-links a{color:var(--muted);font-size:13px;text-decoration:none}
+    .footer-links a:hover{color:var(--text)}
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html" class="logo">VideoPool<span>.</span>Publisher</a>
+    <a href="index.html" class="back">← Back to home</a>
+  </nav>
+
+  <div class="container">
+    <div class="page-label">// Legal</div>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: January 1, 2025</p>
+
+    <p>VideoPool Publisher ("we", "our", or "us") offers two deployment models — Self-Hosted and Cloud Hosted — each with different privacy implications. This policy explains both clearly.</p>
+
+    <h2>1. Which version are you using?</h2>
+
+    <div class="notice">
+      📦 <strong>Self-Hosted:</strong> You install and run VideoPool Publisher on your own server. We have no access to your data, your videos, or your API credentials.<br/><br/>
+      ☁️ <strong>Cloud Hosted:</strong> We run VideoPool Publisher on our infrastructure on your behalf. We process your data to provide the service.
+    </div>
+
+    <h2>2. Self-Hosted — Data & Privacy</h2>
+    <p>When using the Self-Hosted version:</p>
+    <ul>
+      <li><strong>All data stays on your server.</strong> Videos, captions, API keys, and publication logs are stored exclusively on your own infrastructure.</li>
+      <li><strong>We collect no personal data.</strong> We have no visibility into your content, your publishing activity, or your social media accounts.</li>
+      <li><strong>License verification only.</strong> The software periodically contacts our license server to verify your license key is valid. This request includes your license key and an anonymous machine identifier. No personal data or content is transmitted.</li>
+      <li><strong>You are solely responsible</strong> for the security of your server, your API credentials, and the content you publish.</li>
+    </ul>
+    <p>You independently manage your relationships with TikTok, Meta (Instagram & Facebook), and Telegram, and are subject to their respective privacy policies.</p>
+
+    <h2>3. Cloud Hosted — Data & Privacy</h2>
+
+    <h3>3.1 What we collect</h3>
+    <ul>
+      <li><strong>Account information</strong> — name, email address, and password (hashed) used to access your dashboard.</li>
+      <li><strong>Video content</strong> — videos and captions you upload are stored on our servers for scheduling and publication purposes.</li>
+      <li><strong>Social media OAuth tokens</strong> — access tokens that allow us to publish to your TikTok, Instagram, and Facebook accounts on your behalf. These are encrypted at rest.</li>
+      <li><strong>Publication logs</strong> — timestamps, platform responses, and publication status for each posting event.</li>
+      <li><strong>Telegram bot interactions</strong> — video files and messages sent to your dedicated bot are processed to add content to your pool.</li>
+    </ul>
+
+    <h3>3.2 How we use your data</h3>
+    <ul>
+      <li>To publish your video content to connected social media platforms on your behalf</li>
+      <li>To manage your scheduling queue and video pool</li>
+      <li>To provide your dashboard and publication history</li>
+      <li>To send transactional emails (account, billing, service notifications)</li>
+    </ul>
+    <p>We do not sell, rent, or share your personal data or content with third parties for advertising or marketing purposes.</p>
+
+    <h3>3.3 Data retention (Cloud Hosted)</h3>
+    <ul>
+      <li>Published videos are deleted from our servers 30 days after publication unless you keep them in your pool.</li>
+      <li>Account data is retained for the duration of your subscription and deleted within 30 days of account closure upon request.</li>
+      <li>Publication logs are retained for 12 months.</li>
+    </ul>
+
+    <h2>4. Third-Party Platform APIs</h2>
+    <p>Both versions connect to third-party APIs subject to their own terms:</p>
+    <ul>
+      <li><strong>TikTok for Developers</strong> — <a href="https://www.tiktok.com/legal/page/global/tik-tok-developer-terms-of-service/en" target="_blank">TikTok Developer Terms</a></li>
+      <li><strong>Meta Graph API</strong> (Instagram & Facebook) — <a href="https://developers.facebook.com/terms/" target="_blank">Meta Platform Terms</a></li>
+      <li><strong>Telegram Bot API</strong> — <a href="https://telegram.org/privacy" target="_blank">Telegram Privacy Policy</a></li>
+    </ul>
+
+    <h2>5. Security</h2>
+    <p>For Cloud Hosted users, we implement industry-standard security practices including encrypted storage of credentials, HTTPS-only communications, and access controls. No security measure is 100% guaranteed.</p>
+
+    <h2>6. Your Rights</h2>
+    <p>You have the right to access, correct, or delete your personal data. To exercise these rights, contact us at <a href="mailto:contact@videopool-publisher.com">contact@videopool-publisher.com</a>. For Self-Hosted users, you exercise these rights directly on your own server.</p>
+
+    <h2>7. Children's Privacy</h2>
+    <p>VideoPool Publisher is not intended for individuals under 18. We do not knowingly collect data from minors.</p>
+
+    <h2>8. Changes</h2>
+    <p>We may update this policy. Material changes will be notified by email (Cloud Hosted) or via the update changelog (Self-Hosted).</p>
+
+    <h2>9. Contact</h2>
+    <p><a href="mailto:contact@videopool-publisher.com">contact@videopool-publisher.com</a></p>
+
+    <hr class="divider" />
+    <p style="font-size:13px">See also: <a href="terms.html">Terms of Service</a></p>
+  </div>
+
+  <footer>
+    <div class="copy">© 2025 VideoPool Publisher</div>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+    </div>
+  </footer>
+</body>
+</html>

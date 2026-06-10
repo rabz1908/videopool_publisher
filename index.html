@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VideoPool Publisher — Automated Short Video Scheduling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --border: #1e1e1e;
+      --accent: #e8ff47;
+      --accent2: #47ffd4;
+      --text: #f0f0f0;
+      --muted: #666;
+      --card: #131313;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1000;
+      opacity: 0.5;
+    }
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+    }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    nav ul { list-style: none; display: flex; gap: 32px; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 13px; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+    nav a:hover { color: var(--text); }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+      padding: 120px 48px 80px; position: relative; overflow: hidden;
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px; opacity: 0.4;
+    }
+    .hero-glow {
+      position: absolute; top: -200px; right: -200px; width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(232,255,71,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      padding: 6px 14px; border-radius: 2px; font-size: 12px;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
+      margin-bottom: 32px; width: fit-content;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-tag::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(48px, 7vw, 96px); line-height: 1; letter-spacing: -3px; max-width: 900px; animation: fadeUp 0.6s 0.1s ease both; }
+    h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub { margin-top: 28px; font-size: 16px; color: var(--muted); max-width: 520px; line-height: 1.8; animation: fadeUp 0.6s 0.2s ease both; }
+    .hero-cta { margin-top: 48px; display: flex; align-items: center; gap: 24px; animation: fadeUp 0.6s 0.3s ease both; flex-wrap: wrap; }
+    .btn-primary { display: inline-block; background: var(--accent); color: #000; padding: 14px 32px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.05em; text-decoration: none; text-transform: uppercase; border-radius: 2px; transition: transform 0.15s, box-shadow 0.15s; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(232,255,71,0.25); }
+    .btn-secondary { display: inline-block; background: transparent; color: var(--text); padding: 14px 32px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.05em; text-decoration: none; text-transform: uppercase; border-radius: 2px; border: 1px solid var(--border); transition: border-color 0.2s; }
+    .btn-secondary:hover { border-color: var(--text); }
+
+    /* Stats */
+    .stats { display: flex; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); animation: fadeUp 0.6s 0.4s ease both; }
+    .stat { flex: 1; padding: 32px 48px; border-right: 1px solid var(--border); }
+    .stat:last-child { border-right: none; }
+    .stat-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 36px; color: var(--accent); letter-spacing: -1px; }
+    .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+
+    /* Pricing */
+    .section { padding: 100px 48px; }
+    .section-label { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
+    h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(32px, 4vw, 52px); letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 60px; }
+
+    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+    .pricing-card { background: var(--card); padding: 48px; position: relative; }
+    .pricing-card.featured { background: var(--surface); }
+    .pricing-card.featured::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); }
+
+    .plan-badge { display: inline-block; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); padding: 4px 10px; margin-bottom: 24px; }
+    .plan-badge.highlight { color: var(--accent); border-color: var(--accent); }
+    .plan-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 28px; letter-spacing: -0.5px; margin-bottom: 8px; }
+    .plan-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 52px; letter-spacing: -2px; color: var(--accent); line-height: 1; }
+    .plan-price sup { font-size: 24px; vertical-align: super; }
+    .plan-price span { font-size: 16px; color: var(--muted); font-weight: 400; font-family: 'DM Mono', monospace; letter-spacing: 0; }
+    .plan-desc { color: var(--muted); font-size: 13px; margin: 16px 0 32px; line-height: 1.8; }
+    .plan-features { list-style: none; }
+    .plan-features li { font-size: 13px; color: var(--muted); padding: 10px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 10px; }
+    .plan-features li:last-child { border-bottom: none; }
+    .plan-features li::before { content: '→'; color: var(--accent); flex-shrink: 0; }
+    .plan-note { font-size: 12px; color: var(--muted); margin-top: 24px; line-height: 1.6; }
+
+    /* Comparison */
+    .compare-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    .compare-table th { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; text-align: left; padding: 16px 20px; border-bottom: 1px solid var(--border); color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+    .compare-table td { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--muted); }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table td:first-child { color: var(--text); }
+    .yes { color: var(--accent2) !important; }
+    .no  { color: #444 !important; }
+
+    /* Features */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+    .feature { background: var(--card); padding: 40px; transition: background 0.2s; }
+    .feature:hover { background: var(--surface); }
+    .feature-icon { font-size: 28px; margin-bottom: 20px; }
+    .feature h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; margin-bottom: 12px; letter-spacing: -0.3px; }
+    .feature p { font-size: 14px; color: var(--muted); line-height: 1.8; }
+
+    /* How it works */
+    .how { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .step { padding: 48px 40px; border-right: 1px solid var(--border); }
+    .step:last-child { border-right: none; }
+    .step-num { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 64px; color: var(--border); line-height: 1; margin-bottom: 20px; letter-spacing: -3px; }
+    .step h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; margin-bottom: 10px; }
+    .step p { font-size: 13px; color: var(--muted); line-height: 1.8; }
+
+    /* Platforms */
+    .platforms { display: flex; gap: 16px; margin-top: 48px; flex-wrap: wrap; }
+    .platform-badge { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 2px; font-size: 13px; font-family: 'Syne', sans-serif; font-weight: 600; }
+    .platform-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); }
+
+    /* Code */
+    .code-section { background: var(--card); border: 1px solid var(--border); padding: 32px; margin-top: 48px; border-radius: 2px; position: relative; overflow: hidden; }
+    .code-section::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, var(--accent), transparent); }
+    .code-bar { display: flex; gap: 6px; margin-bottom: 20px; }
+    .code-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+    pre { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--muted); line-height: 1.8; overflow-x: auto; }
+    pre .kw  { color: var(--accent); }
+    pre .str { color: var(--accent2); }
+    pre .cm  { color: #444; }
+
+    /* Footer */
+    footer { border-top: 1px solid var(--border); padding: 40px 48px; display: flex; align-items: center; justify-content: space-between; }
+    .footer-links { display: flex; gap: 32px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+    footer .copy { font-size: 12px; color: var(--muted); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+    @media(max-width:768px) {
+      nav { padding: 16px 24px; }
+      nav ul { display: none; }
+      .hero { padding: 100px 24px 60px; }
+      .stats, .steps { flex-direction: column; }
+      .pricing-grid, .features-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .section { padding: 60px 24px; }
+      footer { flex-direction: column; gap: 24px; text-align: center; }
+      .footer-links { justify-content: center; flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">VideoPool<span>.</span>Publisher</div>
+    <ul>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="privacy.html">Privacy</a></li>
+      <li><a href="terms.html">Terms</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-glow"></div>
+    <div class="hero-tag">Automated Video Publishing</div>
+    <h1>Schedule your<br/><em>short videos.</em><br/>Effortlessly.</h1>
+    <p class="hero-sub">VideoPool Publisher automatically publishes short-form videos to TikTok, Instagram Reels, and Facebook — twice a day, every day. Self-hosted or fully managed.</p>
+    <div class="hero-cta">
+      <a href="#pricing" class="btn-primary">See pricing</a>
+      <a href="#how" class="btn-secondary">How it works</a>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-num">2×</div><div class="stat-label">Daily auto-posts</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">Platforms supported</div></div>
+    <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Videos in your pool</div></div>
+    <div class="stat"><div class="stat-num">0</div><div class="stat-label">Manual actions needed</div></div>
+  </div>
+
+  <!-- Pricing -->
+  <section class="section" id="pricing">
+    <div class="section-label">// Pricing</div>
+    <h2>Two ways to run it.<br/>One price each.</h2>
+
+    <div class="pricing-grid">
+
+      <!-- Self-hosted -->
+      <div class="pricing-card">
+        <div class="plan-badge">Self-Hosted</div>
+        <div class="plan-name">Self-Hosted License</div>
+        <div class="plan-price"><sup>€</sup>99<span>/year</span></div>
+        <p class="plan-desc">Install on your own server. You control everything — your data never leaves your machine. Includes all updates and email support for the license period.</p>
+        <ul class="plan-features">
+          <li>Run on any Linux server or old PC</li>
+          <li>You manage your own API keys (TikTok, Meta)</li>
+          <li>Telegram bot included for mobile uploads</li>
+          <li>Unlimited videos in your pool</li>
+          <li>Full source code access</li>
+          <li>Email support + all updates included</li>
+          <li>One license = one server instance</li>
+        </ul>
+        <p class="plan-note">⚙️ Requires basic Linux knowledge. You handle server setup, API registration, and maintenance.</p>
+      </div>
+
+      <!-- Cloud hosted -->
+      <div class="pricing-card featured">
+        <div class="plan-badge highlight">Cloud Hosted ★</div>
+        <div class="plan-name">Managed Cloud</div>
+        <div class="plan-price"><sup>€</sup>29<span>/month</span></div>
+        <p class="plan-desc">We run everything for you. Connect your social accounts in one click, upload videos via Telegram, and we handle the rest. Zero server management.</p>
+        <ul class="plan-features">
+          <li>No server needed — fully managed infrastructure</li>
+          <li>One-click OAuth connection (TikTok, Instagram, Facebook)</li>
+          <li>No API key management on your end</li>
+          <li>Telegram bot ready to use immediately</li>
+          <li>Unlimited videos in your pool</li>
+          <li>Web dashboard for scheduling & logs</li>
+          <li>Priority support</li>
+        </ul>
+        <p class="plan-note">☁️ We handle TikTok & Meta API approvals. You just connect your account and start uploading.</p>
+      </div>
+
+    </div>
+
+    <!-- Comparison table -->
+    <div style="margin-top: 2px; border: 1px solid var(--border); border-top: none;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Self-Hosted</th>
+            <th>Cloud Hosted</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Your data on your server</td><td class="yes">✓ Yes</td><td class="no">✗ No (our servers)</td></tr>
+          <tr><td>API keys management</td><td>You manage</td><td class="yes">We manage</td></tr>
+          <tr><td>Server setup required</td><td>Yes (~1h)</td><td class="yes">No</td></tr>
+          <tr><td>TikTok API approval</td><td>You apply</td><td class="yes">Already approved</td></tr>
+          <tr><td>Telegram bot upload</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>Web dashboard</td><td class="no">✗</td><td class="yes">✓</td></tr>
+          <tr><td>Updates included</td><td class="yes">✓ 1 year</td><td class="yes">✓ Always</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features" style="background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+    <div class="section-label">// Features</div>
+    <h2>Everything you need.<br/>Nothing you don't.</h2>
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon">🎲</div>
+        <h3>Random Pick</h3>
+        <p>Each publication draws a random video from your pool — no duplicates until the full library has been used.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📅</div>
+        <h3>Fixed Schedule</h3>
+        <p>Set your two daily posting times once. The scheduler runs silently in the background, every single day.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">✍️</div>
+        <h3>Per-platform Captions</h3>
+        <p>Each video carries its own caption for TikTok, Instagram, and Facebook. Tailored copy, zero extra effort.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📲</div>
+        <h3>Telegram Inbox</h3>
+        <p>Send videos and captions directly from your phone via Telegram — inline with the video or as a follow-up message.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📋</div>
+        <h3>Publication Log</h3>
+        <p>Every post is logged with timestamp, platform status, and file reference. Full traceability, always.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔁</div>
+        <h3>Recycle Mode</h3>
+        <p>When your pool runs dry, flip a single flag to recycle all videos and start the rotation over again.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section how" id="how">
+    <div class="section-label">// Workflow</div>
+    <h2>Four steps.<br/>Then it runs itself.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Upload via Telegram</h3>
+        <p>Send your short video to your private Telegram bot directly from your phone after editing.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Add captions</h3>
+        <p>Include captions in the video message, or send them in a follow-up text message — whichever fits your workflow.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Scheduler picks randomly</h3>
+        <p>At your scheduled times, a random unpublished video is selected from the pool.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <h3>Posted everywhere</h3>
+        <p>The video is published simultaneously to TikTok, Instagram Reels, and your Facebook Page.</p>
+      </div>
+    </div>
+
+    <div style="padding: 60px 0 0;">
+      <div class="section-label">// Sample caption upload via Telegram</div>
+      <div class="code-section">
+        <div class="code-bar"><div class="code-dot"></div><div class="code-dot"></div><div class="code-dot"></div></div>
+        <pre><span class="cm">// Option A — captions inline with the video (Telegram caption field)</span>
+<span class="str">--meta:</span> 🔥 New drop available now. Link in bio. #brand #reels
+<span class="str">--facebook:</span> Just launched — check it out on our website!
+<span class="str">--tiktok:</span> POV: you found exactly what you needed 😅 #fyp
+
+<span class="cm">// Option B — send video first, then captions as a text message</span>
+<span class="cm">// [video sent]</span>
+<span class="cm">// [next message:]</span>
+<span class="str">--meta:</span> 🔥 New drop available now. Link in bio. #brand #reels
+<span class="str">--facebook:</span> Just launched — check it out on our website!
+<span class="str">--tiktok:</span> POV: you found exactly what you needed 😅 #fyp</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platforms -->
+  <section class="section" id="platforms">
+    <div class="section-label">// Integrations</div>
+    <h2>Three platforms.<br/>One workflow.</h2>
+    <p style="color: var(--muted); max-width: 480px;">VideoPool Publisher connects directly to the official APIs of each platform — no third-party intermediaries, no extra subscriptions.</p>
+    <div class="platforms">
+      <div class="platform-badge"><span class="dot"></span> TikTok — Content Posting API</div>
+      <div class="platform-badge"><span class="dot"></span> Instagram — Reels Graph API</div>
+      <div class="platform-badge"><span class="dot"></span> Facebook — Pages Video API</div>
+      <div class="platform-badge"><span class="dot"></span> Telegram — Bot API (inbox)</div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="logo">VideoPool<span>.</span>Publisher</div>
+    <div class="footer-links">
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="mailto:contact@videopool-publisher.com">Contact</a>
+    </div>
+    <div class="copy">© 2025 VideoPool Publisher</div>
+  </footer>
+
+</body>
+</html>
